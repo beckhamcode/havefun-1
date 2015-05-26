@@ -10,9 +10,9 @@ int pokernumber[] = {
 };//引用牌格式转换数组，
 using namespace std;
 /*winpro函数通过手牌和明牌计算获胜的概率，返回值为获胜概率*/
-double winpro(int myhand[2], int poker[5])
+double winpro(int myhand[2], int poker[],int pokern, int playn)
 {
-	/*myhand存储手牌的值，poker存储明牌的值*/
+	/*myhand存储手牌的值，poker存储明牌的值，pokern存储明牌的数量，playn存储目前玩家的数量*/
 	//存储的方式为将52张牌依次列为0到51数字，按照黑桃，梅花，方片，红桃排列，
 	//例如13代表梅花2，25代表梅花A
 	int exit[52];//数组，用来判断某张牌是否已经出现
@@ -20,14 +20,14 @@ double winpro(int myhand[2], int poker[5])
 
 	int temp;
 	int allpoker[7];//存储一组七张牌。
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < pokern; i++)
 	{
 		allpoker[i] = pokernumber[poker[i]];
-	}//将不可更改的五个值存入前五位，
+	}//将不可更改的pokern个值存入前位，
 
-	allpoker[5] = pokernumber[myhand[0]];
-	allpoker[6] = pokernumber[myhand[1]];
-	int mysort = compare7(allpoker);//计算自己手牌的排名
+	//allpoker[5] = pokernumber[myhand[0]];
+	//allpoker[6] = pokernumber[myhand[1]];
+	int mysort;//计算自己手牌的排名
 
 	for (int i = 0; i < 1000; i++)//循环1000次，找出获胜次数
 	{
@@ -37,16 +37,27 @@ double winpro(int myhand[2], int poker[5])
 		}
 		exit[myhand[0]] = 1;
 		exit[myhand[1]] = 1;
-		exit[poker[0]] = 1;
-		exit[poker[1]] = 1;
-		exit[poker[2]] = 1;
-		exit[poker[3]] = 1;
-		exit[poker[4]] = 1;//已知的手牌赋值为1
+
+		for (int j = 0; j < pokern; j++)
+		{
+			exit[poker[j]] = 1;
+		}//已知的手牌赋值为1
 
 		srand((unsigned int)(time(0)*i)); // seed你的随即函数，这样每次序列不同，一般给当前时间作为提示。
 
 		int j;
-		for (j = 0; j < 7; j++)
+		for (j = pokern; j < 5; j++)
+		{
+			while (exit[temp = ((int)rand()) % 52] == 1);
+			exit[temp] = 1;
+			allpoker[j] = pokernumber[temp];
+		}
+		allpoker[5] = pokernumber[myhand[0]];
+		allpoker[6] = pokernumber[myhand[1]];
+
+		mysort = compare7(allpoker);
+
+		for (j = 0; j < playn; j++)
 		{
 			while (exit[temp = ((int)rand())%52] == 1);
 			exit[temp] = 1;
@@ -56,10 +67,11 @@ double winpro(int myhand[2], int poker[5])
 			exit[temp] = 1;
 			allpoker[6] = pokernumber[temp];
 
-			if (mysort < compare7(allpoker))//代表自己的牌比其他人的好，
-				winnum += 1;
-				
+			if (mysort > compare7(allpoker))//代表自己的牌比其他人坏
+				break;
 		}//为第j个牌手随机一手牌，若该牌在之前出现过，则重新随机。
+		if (j == playn)
+			winnum += 1;
 	}
-	return (double(winnum) / 7000.0);
+	return (double(winnum) / 1000.0);
 }
